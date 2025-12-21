@@ -4,6 +4,7 @@
 #include <windows.h>
 using namespace std;
 const size_t MAX = 15;
+const size_t MAXIMUM = MAX * MAX;
 const char water = '~';
 const char hit = 'x';
 const char miss = 'o';
@@ -18,12 +19,36 @@ const int cruisers = 2;
 const int carriers = 1;
 const char *typeBoat[] = {"Destroyer", "Submarine", "Cruiser", "Carrier"};
 
+void swap(int *a, int *b)
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void shuffle(int arr[], int n)
+{
+    srand(time(0));
+
+    for (int i = n - 1; i > 0; i--)
+    {
+        int j = rand() % (i + 1);
+        swap(&arr[i], &arr[j]);
+    }
+}
+
 int absoluteValue(int a)
 {
     if (a > 0)
         return a;
     else
         return -a;
+}
+
+void reajust(int *X, int *Y)
+{
+    *X = *X - 1;
+    *Y = *Y - 1;
 }
 
 void fillWithWater(char board[MAX][MAX], const size_t size)
@@ -54,6 +79,12 @@ bool areValidCoordinates(int startX, int startY, int endX, int endY, int boatSiz
     }
 }
 
+bool areAlreadyHit(char board[MAX][MAX], int X, int Y)
+{
+    reajust(&X, &Y);
+    return (board[X][Y] != water);
+}
+
 bool areOccupied(char board[MAX][MAX], int startX, int startY, int endX, int endY)
 {
     bool occupied = false;
@@ -80,6 +111,61 @@ bool areOccupied(char board[MAX][MAX], int startX, int startY, int endX, int end
     return occupied;
 }
 
+void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const size_t size)
+{
+    for (int i = 0; i <= size; i++)
+    {
+        if (i < 9)
+            cout << i << "  ";
+        else
+            cout << i << " ";
+    }
+    cout << "\n";
+    for (int i = 0; i < size; i++)
+    {
+        if (i + 1 < 10)
+            cout << i + 1 << "  ";
+        else
+            cout << i + 1 << " ";
+        for (int j = 0; j < size; j++)
+        {
+            cout << firstBoard[i][j] << "  ";
+        }
+        cout << "| ";
+        for (int k = 0; k < size; k++)
+        {
+            cout << secondBoard[i][k] << "  ";
+        }
+        cout << "\n";
+    }
+}
+
+
+void printBoard(char board[MAX][MAX], const size_t size)
+{
+    for (int i = 0; i <= size; i++)
+    {
+        if (i < 9)
+            cout << i << "  ";
+        else
+            cout << i << " ";
+    }
+    cout << "\n";
+    for (int i = 0; i < size; i++)
+    {
+        if (i + 1 < 10)
+            cout << i + 1 << "  ";
+        else
+            cout << i + 1 << " ";
+        for (int j = 0; j < size; j++)
+        {
+            cout << board[i][j] << "  ";
+        }
+        cout << "\n";
+    }
+}
+
+
 void fillInBoatPositions(char board[MAX][MAX], const size_t size, const int amount, const int boatSize)
 {
     for (int t = 0; t < amount; t++)
@@ -95,10 +181,17 @@ void fillInBoatPositions(char board[MAX][MAX], const size_t size, const int amou
             cout << "\n"
                  << typeBoat[boatSize - 1] << " Start Position: ";
             cin >> startX >> startY;
-            cout << "\n"
-                 << typeBoat[boatSize - 1] << " End Position: ";
-            cin >> endX >> endY;
-
+            if (boatSize != 1)
+            {
+                cout << "\n"
+                     << typeBoat[boatSize - 1] << " End Position: ";
+                cin >> endX >> endY;
+            }
+            else
+            {
+                endX = startX;
+                endY = startY;
+            }
             if (!areValidCoordinates(startX, startY, endX, endY, boatSize, size))
             {
                 incorrectPlacement = true;
@@ -119,21 +212,24 @@ void fillInBoatPositions(char board[MAX][MAX], const size_t size, const int amou
         }
 
         {
+            reajust(&startX, &startY);
+            reajust(&endX, &endY);
             if (startX == endX)
             {
-                for (int j = startY - 1; j <= endY - 1; j++)
+                for (int j = startY; j <= endY; j++)
                 {
-                    board[startX - 1][j] = boat;
+                    board[startX][j] = boat;
                 }
             }
             else
             {
-                for (int i = startX - 1; i <= endX - 1; i++)
+                for (int i = startX; i <= endX; i++)
                 {
-                    board[i][startY - 1] = boat;
+                    board[i][startY] = boat;
                 }
             }
         }
+        printBoard(board, size);
     }
 }
 
@@ -199,37 +295,93 @@ void fillInBoatPositionsAuto(char board[MAX][MAX], const size_t size, const int 
     }
 }
 
-void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const size_t size)
+
+
+void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX], const size_t size, const int moves[MAXIMUM], int move)
 {
-    for (int i = 0; i <= size; i++)
+    int X;
+    int Y;
+    move = move - 1;
+    X = (moves[move] / size) % size;
+    Y = moves[move] % size;
+
+    if (firstBoard[X][Y] == water)
     {
-        if (i < 9)
-            cout << i << "  ";
-        else
-            cout << i << " ";
+        firstBoard[X][Y] = miss;
     }
-    cout << "\n";
-    for (int i = 0; i < size; i++)
+    else
     {
-        if (i + 1 < 10)
-            cout << i + 1 << "  ";
+        firstBoard[X][Y] = hit;
+    }
+    move++;
+}
+
+void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX], char firstBoard[MAX][MAX], const size_t size)
+{
+    int X = -1, Y = -1;
+    while ((X < 1 || X > size) || (Y < 1 || Y > size) || areAlreadyHit(firstShowBoard, X, Y))
+    {
+        cout << "\nPick coordinates: ";
+        cin >> X;
+        cin >> Y;
+    }
+    reajust(&X, &Y);
+    if (firstBoard[X][Y] == water)
+    {
+        firstShowBoard[X][Y] = miss;
+    }
+    else
+    {
+        firstShowBoard[X][Y] = hit;
+    }
+}
+
+void fillInAllBoats(char board[MAX][MAX], size_t size, int automatic)
+{
+    switch (automatic)
+    {
+    case 1:
+        fillInBoatPositionsAuto(board, size, carriers, carrierSize);
+        fillInBoatPositionsAuto(board, size, cruisers, cruiserSize);
+        fillInBoatPositionsAuto(board, size, submarines, submarineSize);
+        fillInBoatPositionsAuto(board, size, destroyers, destroyerSize);
+        break;
+    case 2:
+        fillInBoatPositions(board, size, destroyers, destroyerSize);
+        fillInBoatPositions(board, size, submarines, submarineSize);
+        fillInBoatPositions(board, size, cruisers, cruiserSize);
+        fillInBoatPositions(board, size, carriers, carrierSize);
+        break;
+    };
+}
+
+void game(char firstShowBoard[MAX][MAX], char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const size_t size, const int moves[MAXIMUM], int move)
+{
+    int whoStartsFirst = rand() % 2;
+    while (true)
+    {
+        if (whoStartsFirst)
+        {
+            playerPicksCoordinatesToHit(firstShowBoard, firstBoard, size);
+            computerPicksCoordinatesToHit(secondBoard, size, moves, move);
+            cout << "\ncurrent move: " << move << "\n";
+            move++;
+            printBoards(firstShowBoard, secondBoard, size);
+        }
         else
-            cout << i + 1 << " ";
-        for (int j = 0; j < size; j++)
         {
-            cout << firstBoard[i][j] << "  ";
+            computerPicksCoordinatesToHit(secondBoard, size, moves, move);
+            playerPicksCoordinatesToHit(firstShowBoard, firstBoard, size);
+            cout << "\ncurrent move: " << move << "\n";
+            move++;
+            printBoards(firstShowBoard, secondBoard, size);
         }
-        cout << "| ";
-        for (int k = 0; k < size; k++)
-        {
-            cout << secondBoard[i][k] << "  ";
-        }
-        cout << "\n";
     }
 }
 
 int main()
 {
+    int move = 1;
     int type = -1;
     while (type < 1 || type > 3)
     {
@@ -249,6 +401,14 @@ int main()
         break;
     };
     const size_t size = type;
+
+    const size_t sizeRandom = size * size;
+    int computerPicks[MAXIMUM];
+    for (int i = 0; i < sizeRandom; i++)
+        computerPicks[i] = i;
+    shuffle(computerPicks, sizeRandom);
+
+
     char computerBoard[MAX][MAX];
     char computerShowBoard[MAX][MAX];
     char PlayerBoard[MAX][MAX];
@@ -262,26 +422,15 @@ int main()
         cout << "Enter 1 for automatic arrangment\nEnter 2 to set up the board yourself\n";
         cin >> automatic;
     }
-    switch (automatic)
-    {
-    case 1:
-        fillInBoatPositionsAuto(PlayerBoard, size, carriers, carrierSize);
-        fillInBoatPositionsAuto(PlayerBoard, size, cruisers, cruiserSize);
-        fillInBoatPositionsAuto(PlayerBoard, size, submarines, submarineSize);
-        fillInBoatPositionsAuto(PlayerBoard, size, destroyers, destroyerSize);
-        break;
-    case 2:
-        fillInBoatPositions(PlayerBoard, size, destroyers, destroyerSize);
-        fillInBoatPositions(PlayerBoard, size, submarines, submarineSize);
-        fillInBoatPositions(PlayerBoard, size, cruisers, cruiserSize);
-        fillInBoatPositions(PlayerBoard, size, carriers, carrierSize);
-        break;
-    };
+    fillInAllBoats(PlayerBoard, size, automatic);
+
     printBoards(computerShowBoard, PlayerBoard, size);
-    fillInBoatPositionsAuto(computerBoard, size, carriers, carrierSize);
-    fillInBoatPositionsAuto(computerBoard, size, cruisers, cruiserSize);
-    fillInBoatPositionsAuto(computerBoard, size, submarines, submarineSize);
-    fillInBoatPositionsAuto(computerBoard, size, destroyers, destroyerSize);
-    printBoards(computerBoard, PlayerBoard, size);
+
+    fillInAllBoats(computerBoard, size, 1);
+
+   // printBoards(computerBoard, PlayerBoard, size);
+
+    game(computerShowBoard, computerBoard, PlayerBoard, size, computerPicks, move);
+
     return 0;
 }
