@@ -10,10 +10,10 @@ const char WATER = '~';
 const char HIT = 'x';
 const char MISS = 'o';
 const char BOAT = '#';
-const int DESTROYERSIZE = 1;
-const int SUBMARINESIZE = 2;
-const int CRUISERSIZE = 3;
-const int CARRIERSIZE = 4;
+const int DESTROYER_SIZE = 1;
+const int SUBMARINE_SIZE = 2;
+const int CRUISER_SIZE = 3;
+const int CARRIER_SIZE = 4;
 const int DESTROYERS = 4;
 const int SUBMARINES = 3;
 const int CRUISERS = 2;
@@ -39,7 +39,6 @@ void swap(int *a, int *b)
 
 void shuffle(int arr[], int n)
 {
-    srand(time(0));
 
     for (int i = n - 1; i > 0; i--)
     {
@@ -56,7 +55,7 @@ int absoluteValue(int a)
         return -a;
 }
 
-void reajust(int *X, int *Y)
+void reajustCoordinates(int *X, int *Y)
 {
     *X = *X - 1;
     *Y = *Y - 1;
@@ -92,7 +91,7 @@ bool areValidCoordinates(int startX, int startY, int endX, int endY, int boatSiz
 
 bool areAlreadyHit(char board[MAX][MAX], int X, int Y)
 {
-    reajust(&X, &Y);
+    reajustCoordinates(&X, &Y);
     return (board[X][Y] != WATER);
 }
 
@@ -219,8 +218,8 @@ void fillInBoatPositions(char board[MAX][MAX], char showBoard[MAX][MAX], const s
         }
 
         {
-            reajust(&startX, &startY);
-            reajust(&endX, &endY);
+            reajustCoordinates(&startX, &startY);
+            reajustCoordinates(&endX, &endY);
             if (startX == endX)
             {
                 for (int j = startY; j <= endY; j++)
@@ -251,7 +250,7 @@ void fillInBoatPositionsAuto(char board[MAX][MAX], char showBoard[MAX][MAX], con
         while (incorrectPlacement)
         {
             incorrectPlacement = false;
-            srand(time(0));
+        
             int orientation = rand() % 2;
             if (orientation == 0)
             {
@@ -268,10 +267,6 @@ void fillInBoatPositionsAuto(char board[MAX][MAX], char showBoard[MAX][MAX], con
                 endY = startY;
             }
 
-            if (!areValidCoordinates(startX, startY, endX, endY, boatSize, size))
-            {
-                incorrectPlacement = true;
-            }
             if (!incorrectPlacement && !areOccupied(board, startX, startY, endX, endY))
             {
                 incorrectPlacement = false;
@@ -282,22 +277,26 @@ void fillInBoatPositionsAuto(char board[MAX][MAX], char showBoard[MAX][MAX], con
             }
         }
 
+        reajustCoordinates(&startX, &endX);
+        reajustCoordinates(&startY,&endY);
+
+
         if (startX == endX)
         {
-            for (int j = startY - 1; j <= endY - 1; j++)
+            for (int j = startY; j <= endY; j++)
             {
-                board[startX - 1][j] = fromNumberToChar(*boatID);
+                board[startX][j] = fromNumberToChar(*boatID);
                 if (!computer)
-                    showBoard[startX - 1][j] = BOAT;
+                    showBoard[startX][j] = BOAT;
             }
         }
         else
         {
-            for (int i = startX - 1; i <= endX - 1; i++)
+            for (int i = startX; i <= endX; i++)
             {
-                board[i][startY - 1] = fromNumberToChar(*boatID);
+                board[i][startY] = fromNumberToChar(*boatID);
                 if (!computer)
-                    showBoard[i][startY - 1] = BOAT;
+                    showBoard[i][startY] = BOAT;
             }
         }
         (*boatID)++;
@@ -343,7 +342,7 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX], char firstBoard[
         cin >> X;
         cin >> Y;
     }
-    reajust(&X, &Y);
+    reajustCoordinates(&X, &Y);
     if (firstBoard[X][Y] == WATER)
     {
         firstShowBoard[X][Y] = MISS;
@@ -374,17 +373,17 @@ void fillInAllBoats(char board[MAX][MAX], char showBoard[MAX][MAX], size_t size,
     switch (automatic)
     {
     case 1:
-        fillInBoatPositionsAuto(board, showBoard, size, CARRIERS, CARRIERSIZE, boatID, computer);
-        fillInBoatPositionsAuto(board, showBoard, size, CRUISERS, CRUISERSIZE, boatID, computer);
-        fillInBoatPositionsAuto(board, showBoard, size, SUBMARINES, SUBMARINESIZE, boatID, computer);
-        fillInBoatPositionsAuto(board, showBoard, size, DESTROYERS, DESTROYERSIZE, boatID, computer);
+        fillInBoatPositionsAuto(board, showBoard, size, CARRIERS, CARRIER_SIZE, boatID, computer);
+        fillInBoatPositionsAuto(board, showBoard, size, CRUISERS, CRUISER_SIZE, boatID, computer);
+        fillInBoatPositionsAuto(board, showBoard, size, SUBMARINES, SUBMARINE_SIZE, boatID, computer);
+        fillInBoatPositionsAuto(board, showBoard, size, DESTROYERS, DESTROYER_SIZE, boatID, computer);
         break;
     case 2:
 
-        fillInBoatPositions(board, showBoard, size, CARRIERS, CARRIERSIZE, boatID);
-        fillInBoatPositions(board, showBoard, size, CRUISERS, CRUISERSIZE, boatID);
-        fillInBoatPositions(board, showBoard, size, SUBMARINES, SUBMARINESIZE, boatID);
-        fillInBoatPositions(board, showBoard, size, DESTROYERS, DESTROYERSIZE, boatID);
+        fillInBoatPositions(board, showBoard, size, CARRIERS, CARRIER_SIZE, boatID);
+        fillInBoatPositions(board, showBoard, size, CRUISERS, CRUISER_SIZE, boatID);
+        fillInBoatPositions(board, showBoard, size, SUBMARINES, SUBMARINE_SIZE, boatID);
+        fillInBoatPositions(board, showBoard, size, DESTROYERS, DESTROYER_SIZE, boatID);
         break;
     };
 }
@@ -393,22 +392,22 @@ void setBoatSizes(int boatSize[MAXBOATS])
     int counter = 0;
     for (int i = 0; i < CARRIERS; i++)
     {
-        boatSize[i] = CARRIERSIZE;
+        boatSize[i] = CARRIER_SIZE;
     }
     counter += CARRIERS;
     for (int i = counter; i < CRUISERS + counter; i++)
     {
-        boatSize[i] = CRUISERSIZE;
+        boatSize[i] = CRUISER_SIZE;
     }
     counter += CRUISERS;
     for (int i = counter; i < SUBMARINES + counter; i++)
     {
-        boatSize[i] = SUBMARINESIZE;
+        boatSize[i] = SUBMARINE_SIZE;
     }
     counter += SUBMARINES;
     for (int i = counter; i < DESTROYERS + counter; i++)
     {
-        boatSize[i] = DESTROYERSIZE;
+        boatSize[i] = DESTROYER_SIZE;
     }
 }
 void game(char firstShowBoard[MAX][MAX], char firstBoard[MAX][MAX], char secondShowBoard[MAX][MAX], char secondBoard[MAX][MAX], int playerBoatHitAmount[MAXBOATS], int computerBoatHitAmount[MAXBOATS], const size_t size, const int moves[MAXIMUM], int move, int boatSize[MAXBOATS], int aliveBoatsPlayer, int aliveBoatsComputer)
@@ -443,6 +442,9 @@ void game(char firstShowBoard[MAX][MAX], char firstBoard[MAX][MAX], char secondS
 
 int main()
 {
+    srand(time(0));
+
+
     int boatsNumber = (1 << (DESTROYERS + SUBMARINES + CRUISERS + CARRIERS)) - 1;
     int aliveBoatsPlayer = boatsNumber;
     int aliveBoatsComputer = boatsNumber;
