@@ -39,6 +39,27 @@ void swap(int *a, int *b)
     *b = temp;
 }
 
+int cinInt()
+{
+    int num;
+    while (true)
+    {
+        cin >> num;
+        if (!cin)
+        {
+            cout << "Invalid input! Try again.\n";
+            cin.clear();
+            char ch;
+            while (cin.get(ch) && ch != '\n')
+                ;
+        }
+        else
+        {
+            return num;
+        }
+    }
+}
+
 void shuffle(int arr[], int n)
 {
 
@@ -187,12 +208,14 @@ void fillInBoatPositions(char board[MAX][MAX], char showBoard[MAX][MAX], const s
         {
             cout << "\n"
                  << typeBoat[boatSize - 1] << " Start Position: ";
-            cin >> startX >> startY;
+            startX = cinInt();
+            startY = cinInt();
             if (boatSize != 1)
             {
                 cout << "\n"
                      << typeBoat[boatSize - 1] << " End Position: ";
-                cin >> endX >> endY;
+                endX = cinInt();
+                endY = cinInt();
             }
             else
             {
@@ -328,9 +351,9 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX], char firstBoard[
     int X = -2, Y = -2;
     while (!(X == -1 && Y == -1) && ((X < 1 || X > size) || (Y < 1 || Y > size) || areAlreadyHit(firstShowBoard, X, Y)))
     {
-        cout << "\nPick coordinates: ";
-        cin >> X;
-        cin >> Y;
+        cout << "\nPick coordinates to hit: ";
+        X = cinInt();
+        Y = cinInt();
     }
     if (X == -1)
     {
@@ -559,7 +582,6 @@ void game(char firstShowBoard[MAX][MAX], char firstBoard[MAX][MAX], char secondS
         {
             printBoards(firstShowBoard, secondShowBoard, size);
             playerPicksCoordinatesToHit(firstShowBoard, firstBoard, secondShowBoard, computerBoatHitAmount, boatSize, size, &aliveBoatsComputer);
-            // computerPicksCoordinatesToHit(firstBoard, firstShowBoard, computerBoatHitAmount, size, moves, move, boatSize, &aliveBoatsComputer);
             if (aliveBoatsComputer && !saveG)
                 computerPicksCoordinatesToHit(secondBoard, secondShowBoard, playerBoatHitAmount, size, moves, move, boatSize, &aliveBoatsPlayer);
             cout << "\ncurrent move: " << move << "\n";
@@ -574,9 +596,7 @@ void game(char firstShowBoard[MAX][MAX], char firstBoard[MAX][MAX], char secondS
                 move++;
                 printBoards(firstShowBoard, secondShowBoard, size);
                 playerPicksCoordinatesToHit(firstShowBoard, firstBoard, secondShowBoard, computerBoatHitAmount, boatSize, size, &aliveBoatsComputer);
-
-            } // if (aliveBoatsPlayer)
-            //   computerPicksCoordinatesToHit(firstBoard, firstShowBoard, playerBoatHitAmount, size, moves, move, boatSize, &aliveBoatsPlayer);
+            }
         }
         if (saveG)
         {
@@ -594,7 +614,7 @@ int main()
     while (selectNewOrSaved != 1 && selectNewOrSaved != 2)
     {
         cout << "Start a new game: 1\nContinue a saved game: 2\n(Enter (-1, -1) as coordinates to save the game at any time when playing.)\n";
-        cin >> selectNewOrSaved;
+        selectNewOrSaved = cinInt();
     }
     int boatsNumber = (1 << (DESTROYERS_COUNT + SUBMARINES_COUNT + CRUISERS_COUNT + CARRIERS_COUNT)) - 1;
     int aliveBoatsPlayer = boatsNumber;
@@ -619,7 +639,7 @@ int main()
         while (type < 1 || type > 3)
         {
             cout << "Enter 1 for Calm Waters (10x10)\nEnter 2 for Rough Seas (12x12)\nEnter 3 for Storm of Steel (15x15)\n";
-            cin >> type;
+            type = cinInt();
         }
         switch (type)
         {
@@ -648,16 +668,13 @@ int main()
         while (automatic < 1 || automatic > 2)
         {
             cout << "Enter 1 for automatic arrangment\nEnter 2 to set up the board yourself\n";
-            cin >> automatic;
+            automatic = cinInt();
         }
         int startID = 0;
         fillInAllBoats(PlayerBoard, PlayerShowBoard, size, automatic, &startID, 0);
         int start2ID = 0;
         fillInAllBoats(computerBoard, computerShowBoard, size, 1, &start2ID, 1);
         printBoards(computerShowBoard, PlayerShowBoard, size);
-
-        // saveGame(PlayerShowBoard,computerShowBoard,PlayerBoard,computerBoard,size, aliveBoatsPlayer,aliveBoatsComputer,move,computerPicks, playerBoatHitAmount, computerBoatHitAmount);
-        //  printBoards(computerBoard, PlayerBoard, size);
     }
     else
     {
