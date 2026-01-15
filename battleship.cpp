@@ -138,7 +138,7 @@ bool areOccupied(char board[MAX][MAX], int startX, int startY, int endX, int end
     return occupied;
 }
 
-void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const size_t size)
+void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const size_t size, bool oneBoard)
 {
     for (int i = 0; i <= size; i++)
     {
@@ -158,34 +158,14 @@ void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const si
         {
             cout << firstBoard[i][j] << "  ";
         }
-        cout << "| ";
-        for (int k = 0; k < size; k++)
-        {
-            cout << secondBoard[i][k] << "  ";
-        }
-        cout << "\n";
-    }
-}
 
-void printBoard(char board[MAX][MAX], const size_t size)
-{
-    for (int i = 0; i <= size; i++)
-    {
-        if (i < 9)
-            cout << i << "  ";
-        else
-            cout << i << " ";
-    }
-    cout << "\n";
-    for (int i = 0; i < size; i++)
-    {
-        if (i + 1 < 10)
-            cout << i + 1 << "  ";
-        else
-            cout << i + 1 << " ";
-        for (int j = 0; j < size; j++)
+        if (!oneBoard)
         {
-            cout << board[i][j] << "  ";
+            cout << "| ";
+            for (int k = 0; k < size; k++)
+            {
+                cout << secondBoard[i][k] << "  ";
+            }
         }
         cout << "\n";
     }
@@ -200,7 +180,7 @@ void fillInBoatPositions(char board[MAX][MAX],
 {
     for (int t = 0; t < amount; t++)
     {
-        printBoard(showBoard, size);
+        printBoards(showBoard, showBoard,size,1);
         bool incorrectPlacement = true;
         int startX, startY, endX, endY;
         while (incorrectPlacement)
@@ -304,7 +284,7 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
                                    int playerBoatHitAmount[MAXBOATS],
                                    const size_t size, const int moves[MAXIMUM],
                                    int move, int boatSize[MAXBOATS],
-                                   int *aliveBoatsPlayer)
+                                   int &aliveBoatsPlayer)
 {
     int X;
     int Y;
@@ -323,11 +303,11 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
         playerBoatHitAmount[hitPosition]++;
         if (playerBoatHitAmount[hitPosition] == boatSize[hitPosition])
         {
-            *aliveBoatsPlayer ^= (1 << (hitPosition));
+            aliveBoatsPlayer ^= (1 << (hitPosition));
         }
-        if (!(*aliveBoatsPlayer))
+        if (!(aliveBoatsPlayer))
         {
-            cout << "\nGame over!\n";
+            cout << "\nGame over! Computer wins!\n";
         }
         else
             computerPicksCoordinatesToHit(firstBoard,
@@ -347,7 +327,7 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
                                  int computerBoatHitAmount[MAXBOATS],
                                  int boatSize[MAXBOATS],
                                  const size_t size,
-                                 int *aliveBoatsComputer)
+                                 int &aliveBoatsComputer)
 {
     int X = -2, Y = -2;
     while (!(X == -1 && Y == -1) && ((X < 1 || X > size) || (Y < 1 || Y > size) || areAlreadyHit(firstShowBoard, X, Y)))
@@ -377,14 +357,14 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
             if (computerBoatHitAmount[hitPosition] == boatSize[hitPosition])
             {
                 cout << "\nSunk!\n";
-                *aliveBoatsComputer ^= (1 << (hitPosition));
-                if (!(*aliveBoatsComputer))
+                aliveBoatsComputer ^= (1 << (hitPosition));
+                if (!(aliveBoatsComputer))
                 {
-                    cout << "\nGame over!\n";
+                    cout << "\nGame over! You win!\n";
                 }
             }
-            printBoards(firstShowBoard, PlayerShowBoard, size);
-            if ((*aliveBoatsComputer))
+            printBoards(firstShowBoard, PlayerShowBoard, size, 0);
+            if ((aliveBoatsComputer))
                 playerPicksCoordinatesToHit(firstShowBoard,
                                             firstBoard,
                                             PlayerShowBoard,
@@ -453,10 +433,10 @@ void setUpGameDetailsFromFile(char firstShowBoard[MAX][MAX],
                               char secondShowBoard[MAX][MAX],
                               char firstBoard[MAX][MAX],
                               char secondBoard[MAX][MAX],
-                              size_t *size,
-                              int *aliveBoatsPlayer,
-                              int *aliveBoatsComputer,
-                              int *move,
+                              size_t &size,
+                              int &aliveBoatsPlayer,
+                              int &aliveBoatsComputer,
+                              int &move,
                               int moves[MAXIMUM],
                               int playerBoatHitAmount[MAXBOATS],
                               int computerBoatHitAmount[MAXBOATS])
@@ -464,17 +444,17 @@ void setUpGameDetailsFromFile(char firstShowBoard[MAX][MAX],
     ifstream saveGameFile("file.txt");
     if (!saveGameFile)
     {
-        cout << "Error with reading file" << endl;
+        cout << "Error when reading file" << endl;
     }
-    saveGameFile >> *size;
-    loadBoard(saveGameFile, firstShowBoard, *size);
-    loadBoard(saveGameFile, secondShowBoard, *size);
-    loadBoard(saveGameFile, firstBoard, *size);
-    loadBoard(saveGameFile, secondBoard, *size);
-    saveGameFile >> *aliveBoatsPlayer;
-    saveGameFile >> *aliveBoatsComputer;
-    saveGameFile >> *move;
-    for (int i = 0; i < (*size) * (*size); i++)
+    saveGameFile >> size;
+    loadBoard(saveGameFile, firstShowBoard, size);
+    loadBoard(saveGameFile, secondShowBoard, size);
+    loadBoard(saveGameFile, firstBoard, size);
+    loadBoard(saveGameFile, secondBoard, size);
+    saveGameFile >> aliveBoatsPlayer;
+    saveGameFile >> aliveBoatsComputer;
+    saveGameFile >> move;
+    for (int i = 0; i < (size) * (size); i++)
     {
         saveGameFile >> moves[i];
     }
@@ -517,7 +497,7 @@ void saveGame(char firstShowBoard[MAX][MAX],
     ofstream saveGameFile("file.txt");
     if (!saveGameFile)
     {
-        cout << "Error with writing file" << endl;
+        cout << "Error when writing file" << endl;
     }
     saveGameFile << size << endl;
 
@@ -547,8 +527,8 @@ void saveGame(char firstShowBoard[MAX][MAX],
     saveGameFile.close();
 }
 void game(char firstShowBoard[MAX][MAX],
-          char firstBoard[MAX][MAX],
           char secondShowBoard[MAX][MAX],
+          char firstBoard[MAX][MAX],
           char secondBoard[MAX][MAX],
           int playerBoatHitAmount[MAXBOATS],
           int computerBoatHitAmount[MAXBOATS],
@@ -559,53 +539,16 @@ void game(char firstShowBoard[MAX][MAX],
           int aliveBoatsPlayer,
           int aliveBoatsComputer)
 {
-    int whoStartsFirst = rand() % 2;
     while (aliveBoatsComputer && aliveBoatsPlayer)
     {
-        if (whoStartsFirst)
-        {
-            printBoards(firstShowBoard, secondShowBoard, size);
-            playerPicksCoordinatesToHit(firstShowBoard,
-                                        firstBoard,
-                                        secondShowBoard,
-                                        computerBoatHitAmount,
-                                        boatSize,
-                                        size,
-                                        &aliveBoatsComputer);
-            if (aliveBoatsComputer && !saveG)
-                computerPicksCoordinatesToHit(secondBoard,
-                                              secondShowBoard,
-                                              playerBoatHitAmount,
-                                              size,
-                                              moves,
-                                              move,
-                                              boatSize,
-                                              &aliveBoatsPlayer);
-            move++;
-        }
-        else
-        {
-            computerPicksCoordinatesToHit(secondBoard,
-                                          secondShowBoard,
-                                          playerBoatHitAmount,
-                                          size,
-                                          moves,
-                                          move,
-                                          boatSize,
-                                          &aliveBoatsPlayer);
-            if (aliveBoatsPlayer)
-            {
-                move++;
-                printBoards(firstShowBoard, secondShowBoard, size);
-                playerPicksCoordinatesToHit(firstShowBoard,
-                                            firstBoard,
-                                            secondShowBoard,
-                                            computerBoatHitAmount,
-                                            boatSize,
-                                            size,
-                                            &aliveBoatsComputer);
-            }
-        }
+        printBoards(firstShowBoard, secondShowBoard, size,0);
+        playerPicksCoordinatesToHit(firstShowBoard,
+                                    firstBoard,
+                                    secondShowBoard,
+                                    computerBoatHitAmount,
+                                    boatSize,
+                                    size,
+                                    aliveBoatsComputer);
         if (saveG)
         {
             saveGame(secondShowBoard,
@@ -622,6 +565,16 @@ void game(char firstShowBoard[MAX][MAX],
             cout << "The game was saved. See you next time!";
             break;
         }
+        if (aliveBoatsComputer)
+            computerPicksCoordinatesToHit(secondBoard,
+                                          secondShowBoard,
+                                          playerBoatHitAmount,
+                                          size,
+                                          moves,
+                                          move,
+                                          boatSize,
+                                          aliveBoatsPlayer);
+        move++;
     }
 }
 
@@ -631,8 +584,8 @@ int main()
     int selectNewOrSaved = 0;
     while (selectNewOrSaved != 1 && selectNewOrSaved != 2)
     {
-        cout << "Start a new game: 1\n";
-        cout << "Continue a saved game: 2\n(Enter (-1, -1) as coordinates to save the game at any time when playing.)\n";
+        cout << "Start a new game: Choose 1\n";
+        cout << "Continue a saved game: Choose 2\n(Enter (-1, -1) as coordinates to save the game at any time when playing.)\n";
         selectNewOrSaved = cinInt();
     }
     int boatsNumber = (1 << (DESTROYERS_COUNT + SUBMARINES_COUNT + CRUISERS_COUNT + CARRIERS_COUNT)) - 1;
@@ -688,7 +641,7 @@ int main()
         fillInAllBoats(PlayerBoard, PlayerShowBoard, size, automatic, startID, 0);
         int start2ID = 0;
         fillInAllBoats(computerBoard, computerShowBoard, size, 1, start2ID, 1);
-        printBoards(computerShowBoard, PlayerShowBoard, size);
+        printBoards(computerShowBoard, PlayerShowBoard, size, 0);
     }
     else
     {
@@ -696,17 +649,17 @@ int main()
                                  computerShowBoard,
                                  PlayerBoard,
                                  computerBoard,
-                                 &size,
-                                 &aliveBoatsPlayer,
-                                 &aliveBoatsComputer,
-                                 &move,
+                                 size,
+                                 aliveBoatsPlayer,
+                                 aliveBoatsComputer,
+                                 move,
                                  computerPicks,
                                  playerBoatHitAmount,
                                  computerBoatHitAmount);
     }
     game(computerShowBoard,
-         computerBoard,
          PlayerShowBoard,
+         computerBoard,
          PlayerBoard,
          playerBoatHitAmount,
          computerBoatHitAmount,
