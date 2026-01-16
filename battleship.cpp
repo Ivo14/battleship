@@ -32,11 +32,11 @@ int fromCharToNumber(char str)
     return str - '0';
 }
 
-void swap(int *a, int *b)
+void swap(int& a, int& b)
 {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
+    int temp = a;
+    a = b;
+    b = temp;
 }
 
 int cinInt()
@@ -65,14 +65,14 @@ void shuffle(int arr[], int n)
     for (int i = n - 1; i > 0; i--)
     {
         int j = rand() % (i + 1);
-        swap(&arr[i], &arr[j]);
+        swap(arr[i], arr[j]);
     }
 }
 
-void reajustCoordinates(int *X, int *Y)
+void reajustCoordinates(int& X, int& Y)
 {
-    *X = *X - 1;
-    *Y = *Y - 1;
+    X = X - 1;
+    Y = Y - 1;
 }
 
 void fillWithWater(char board1[MAX][MAX], char board2[MAX][MAX], char board3[MAX][MAX], char board4[MAX][MAX], const size_t size)
@@ -108,7 +108,7 @@ bool areValidCoordinates(int startX, int startY, int endX, int endY, int boatSiz
 
 bool areAlreadyHit(char board[MAX][MAX], int X, int Y)
 {
-    reajustCoordinates(&X, &Y);
+    reajustCoordinates(X, Y);
     return (board[X][Y] != WATER);
 }
 
@@ -217,8 +217,8 @@ void fillInBoatPositions(char board[MAX][MAX],
                 }
             }
         }
-        reajustCoordinates(&startX, &startY);
-        reajustCoordinates(&endX, &endY);
+        reajustCoordinates(startX, startY);
+        reajustCoordinates(endX, endY);
         int changeX = (startY == endY);
         int changeY = !changeX;
         for (int i = startX, j = startY; (i <= endX && j <= endY); i += changeX, j += changeY)
@@ -265,8 +265,8 @@ void fillInBoatPositionsAuto(char board[MAX][MAX],
                 incorrectPlacement = false;
             }
         }
-        reajustCoordinates(&startX, &endX);
-        reajustCoordinates(&startY, &endY);
+        reajustCoordinates(startX, endX);
+        reajustCoordinates(startY, endY);
         int changeX = (startY == endY);
         int changeY = !changeX;
         for (int i = startX, j = startY; (i <= endX && j <= endY); i += changeX, j += changeY)
@@ -342,7 +342,7 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
     }
     else
     {
-        reajustCoordinates(&X, &Y);
+        reajustCoordinates(X, Y);
         if (firstBoard[X][Y] == WATER)
         {
             firstShowBoard[X][Y] = MISS;
