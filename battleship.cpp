@@ -92,10 +92,10 @@ void fillWithWater(char board1[MAX][MAX], char board2[MAX][MAX], char board3[MAX
 bool areValidCoordinates(int startX, int startY, int endX, int endY, int boatSize, const size_t size)
 {
 
-    if (startX > 0 && startY > 0 && endY <= size && startY <= size && startY <= endY && startX <= endX)
-    {
+    if (startX > 0 && startY > 0 && endY <= size && startY <= size && startY <= endY && startX <= endX) 
+    { //^checking if coordinates are within a valid range
         if (((startX == endX) && (endY - startY) == boatSize - 1) ||
-            ((startY == endY) && (endX - startX) == boatSize - 1))
+            ((startY == endY) && (endX - startX) == boatSize - 1)) //checking if the boat has correct length
             return true;
         else
             return false;
@@ -115,7 +115,7 @@ bool areAlreadyHit(char board[MAX][MAX], int X, int Y)
 bool areOccupied(char board[MAX][MAX], int startX, int startY, int endX, int endY)
 {
     bool occupied = false;
-    if (startX == endX)
+    if (startX == endX) // horizontal
     {
         for (int i = startY - 1; i <= endY - 1; i++)
         {
@@ -125,7 +125,7 @@ bool areOccupied(char board[MAX][MAX], int startX, int startY, int endX, int end
             }
         }
     }
-    else if (startY == endY)
+    else if (startY == endY) // vertical
     {
         for (int j = startX - 1; j <= endX - 1; j++)
         {
@@ -288,10 +288,10 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
 {
     int X;
     int Y;
-    move = move - 1;
+    move--; // reajusting the index
     X = (moves[move] / size) % size;
     Y = moves[move] % size;
-    move++;
+    move++; //returning it back
     if (firstBoard[X][Y] == WATER)
     {
         PlayerShowBoard[X][Y] = MISS;
@@ -303,7 +303,7 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
         playerBoatHitAmount[hitPosition]++;
         if (playerBoatHitAmount[hitPosition] == boatSize[hitPosition])
         {
-            aliveBoatsPlayer ^= (1 << (hitPosition));
+            aliveBoatsPlayer ^= (1 << (hitPosition)); // making the boat on the index -> 0 (sunk)
         }
         if (!(aliveBoatsPlayer))
         {
@@ -357,7 +357,7 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
             if (computerBoatHitAmount[hitPosition] == boatSize[hitPosition])
             {
                 cout << "\nSunk!\n";
-                aliveBoatsComputer ^= (1 << (hitPosition));
+                aliveBoatsComputer ^= (1 << (hitPosition)); // making the boat on the index -> 0 (sunk)
                 if (!(aliveBoatsComputer))
                 {
                     cout << "\nGame over! You win!\n";
