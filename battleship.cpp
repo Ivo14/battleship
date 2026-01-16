@@ -19,7 +19,9 @@ const int DESTROYERS_COUNT = 4;
 const int SUBMARINES_COUNT = 3;
 const int CRUISERS_COUNT = 2;
 const int CARRIERS_COUNT = 1;
-bool saveG = false;
+const int CALM_WATERS_SIZE = 10;
+const int ROUGH_SEAS_SIZE = 12;
+const int STORM_OF_STEEL_SIZE = 15;
 const char *typeBoat[] = {"Destroyer (1 tile)", "Submarine (2 tiles)", "Cruiser (3 tiles)", "Carrier (4 tiles)"};
 
 char fromNumberToChar(int num)
@@ -32,7 +34,7 @@ int fromCharToNumber(char str)
     return str - '0';
 }
 
-void swap(int& a, int& b)
+void swap(int &a, int &b)
 {
     int temp = a;
     a = b;
@@ -69,7 +71,7 @@ void shuffle(int arr[], int n)
     }
 }
 
-void reajustCoordinates(int& X, int& Y)
+void reajustCoordinates(int &X, int &Y)
 {
     X = X - 1;
     Y = Y - 1;
@@ -92,10 +94,10 @@ void fillWithWater(char board1[MAX][MAX], char board2[MAX][MAX], char board3[MAX
 bool areValidCoordinates(int startX, int startY, int endX, int endY, int boatSize, const size_t size)
 {
 
-    if (startX > 0 && startY > 0 && endY <= size && startY <= size && startY <= endY && startX <= endX) 
+    if (startX > 0 && startY > 0 && endY <= size && startY <= size && startY <= endY && startX <= endX)
     { //^checking if coordinates are within a valid range
         if (((startX == endX) && (endY - startY) == boatSize - 1) ||
-            ((startY == endY) && (endX - startX) == boatSize - 1)) //checking if the boat has correct length
+            ((startY == endY) && (endX - startX) == boatSize - 1)) // checking if the boat has correct length
             return true;
         else
             return false;
@@ -138,6 +140,28 @@ bool areOccupied(char board[MAX][MAX], int startX, int startY, int endX, int end
     return occupied;
 }
 
+void printInColor(char str)
+{
+    if (str == WATER)
+    {
+        cout << "\033[34m" << WATER << "\033[0m  ";
+    }
+    else if (str == MISS)
+    {
+        cout << "\033[37m" << MISS << "\033[0m  ";
+    }
+    else if (str == BOAT)
+    {
+        cout << "\033[32m" << BOAT << "\033[0m  ";
+    }
+    else if (str == HIT)
+    {
+        cout << "\033[31m" << HIT << "\033[0m  ";
+    }else{
+        cout<<str<<"  ";
+    }
+}
+
 void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const size_t size, bool oneBoard)
 {
     for (int i = 0; i <= size; i++)
@@ -156,7 +180,7 @@ void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const si
             cout << i + 1 << " ";
         for (int j = 0; j < size; j++)
         {
-            cout << firstBoard[i][j] << "  ";
+            printInColor(firstBoard[i][j]);
         }
 
         if (!oneBoard)
@@ -164,7 +188,7 @@ void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const si
             cout << "| ";
             for (int k = 0; k < size; k++)
             {
-                cout << secondBoard[i][k] << "  ";
+                printInColor(secondBoard[i][k]);
             }
         }
         cout << "\n";
@@ -180,7 +204,7 @@ void fillInBoatPositions(char board[MAX][MAX],
 {
     for (int t = 0; t < amount; t++)
     {
-        printBoards(showBoard, showBoard,size,1);
+        printBoards(showBoard, showBoard, size, 1);
         bool incorrectPlacement = true;
         int startX, startY, endX, endY;
         while (incorrectPlacement)
@@ -283,7 +307,7 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
                                    char PlayerShowBoard[MAX][MAX],
                                    int playerBoatHitAmount[MAXBOATS],
                                    const size_t size, const int moves[MAXIMUM],
-                                   int move, int boatSize[MAXBOATS],
+                                   int& move, int boatSize[MAXBOATS],
                                    int &aliveBoatsPlayer)
 {
     int X;
@@ -291,7 +315,7 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
     move--; // reajusting the index
     X = (moves[move] / size) % size;
     Y = moves[move] % size;
-    move++; //returning it back
+    move++; // returning it back
     if (firstBoard[X][Y] == WATER)
     {
         PlayerShowBoard[X][Y] = MISS;
@@ -321,7 +345,7 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
     }
 }
 
-void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
+bool playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
                                  char firstBoard[MAX][MAX],
                                  char PlayerShowBoard[MAX][MAX],
                                  int computerBoatHitAmount[MAXBOATS],
@@ -338,7 +362,7 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
     }
     if (X == -1)
     {
-        saveG = true;
+        return true;
     }
     else
     {
@@ -374,6 +398,7 @@ void playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
                                             aliveBoatsComputer);
         }
     }
+    return false;
 }
 
 void fillInAllBoats(char board[MAX][MAX], char showBoard[MAX][MAX], size_t size, int automatic, int &boatID, bool computer)
@@ -534,22 +559,22 @@ void game(char firstShowBoard[MAX][MAX],
           int computerBoatHitAmount[MAXBOATS],
           size_t size,
           int moves[MAXIMUM],
-          int move,
+          int& move,
           int boatSize[MAXBOATS],
-          int aliveBoatsPlayer,
-          int aliveBoatsComputer)
+          int& aliveBoatsPlayer,
+          int& aliveBoatsComputer)
 {
     while (aliveBoatsComputer && aliveBoatsPlayer)
     {
-        printBoards(firstShowBoard, secondShowBoard, size,0);
-        playerPicksCoordinatesToHit(firstShowBoard,
+        printBoards(firstShowBoard, secondShowBoard, size, 0);
+        bool playerWantsToSave = playerPicksCoordinatesToHit(firstShowBoard,
                                     firstBoard,
                                     secondShowBoard,
                                     computerBoatHitAmount,
                                     boatSize,
                                     size,
                                     aliveBoatsComputer);
-        if (saveG)
+        if (playerWantsToSave)
         {
             saveGame(secondShowBoard,
                      firstShowBoard,
@@ -588,20 +613,20 @@ int main()
         cout << "Continue a saved game: Choose 2\n(Enter (-1, -1) as coordinates to save the game at any time when playing.)\n";
         selectNewOrSaved = cinInt();
     }
-    int boatsNumber = (1 << (DESTROYERS_COUNT + SUBMARINES_COUNT + CRUISERS_COUNT + CARRIERS_COUNT)) - 1;
-    int aliveBoatsPlayer = boatsNumber;
-    int aliveBoatsComputer = boatsNumber;
+    int alive_boats_mask = (1 << (DESTROYERS_COUNT + SUBMARINES_COUNT + CRUISERS_COUNT + CARRIERS_COUNT)) - 1;
+    int aliveBoatsPlayer = alive_boats_mask;
+    int aliveBoatsComputer = alive_boats_mask;
     int computerBoatHitAmount[MAXBOATS] = {0};
     int playerBoatHitAmount[MAXBOATS] = {0};
     int boatSize[MAXBOATS] = {0};
     setBoatSizes(boatSize);
-    char computerBoard[MAX][MAX];
-    char computerShowBoard[MAX][MAX];
+    char ComputerBoard[MAX][MAX];
+    char ComputerShowBoard[MAX][MAX];
     char PlayerBoard[MAX][MAX];
     char PlayerShowBoard[MAX][MAX];
     size_t size;
     int move;
-    size_t sizeRandom;
+    size_t size_randomized_array;
     int computerPicks[MAXIMUM];
 
     if (selectNewOrSaved == 1)
@@ -616,21 +641,21 @@ int main()
         switch (type)
         {
         case 1:
-            type = 10;
+            type = CALM_WATERS_SIZE;
             break;
         case 2:
-            type = 12;
+            type = ROUGH_SEAS_SIZE;
             break;
         case 3:
-            type = 15;
+            type = STORM_OF_STEEL_SIZE;
             break;
         };
         size = type;
-        sizeRandom = size * size;
-        for (int i = 0; i < sizeRandom; i++)
+        size_randomized_array = size * size;
+        for (int i = 0; i < size_randomized_array; i++)
             computerPicks[i] = i;
-        shuffle(computerPicks, sizeRandom);
-        fillWithWater(computerShowBoard, PlayerBoard, computerBoard, PlayerShowBoard, size);
+        shuffle(computerPicks, size_randomized_array);
+        fillWithWater(ComputerShowBoard, PlayerBoard, ComputerBoard, PlayerShowBoard, size);
         int automatic = -1;
         while (automatic < 1 || automatic > 2)
         {
@@ -640,15 +665,15 @@ int main()
         int startID = 0;
         fillInAllBoats(PlayerBoard, PlayerShowBoard, size, automatic, startID, 0);
         int start2ID = 0;
-        fillInAllBoats(computerBoard, computerShowBoard, size, 1, start2ID, 1);
-        printBoards(computerShowBoard, PlayerShowBoard, size, 0);
+        fillInAllBoats(ComputerBoard, ComputerShowBoard, size, 1, start2ID, 1);
+        printBoards(ComputerShowBoard, PlayerShowBoard, size, 0);
     }
     else
     {
         setUpGameDetailsFromFile(PlayerShowBoard,
-                                 computerShowBoard,
+                                 ComputerShowBoard,
                                  PlayerBoard,
-                                 computerBoard,
+                                 ComputerBoard,
                                  size,
                                  aliveBoatsPlayer,
                                  aliveBoatsComputer,
@@ -657,9 +682,9 @@ int main()
                                  playerBoatHitAmount,
                                  computerBoatHitAmount);
     }
-    game(computerShowBoard,
+    game(ComputerShowBoard,
          PlayerShowBoard,
-         computerBoard,
+         ComputerBoard,
          PlayerBoard,
          playerBoatHitAmount,
          computerBoatHitAmount,
