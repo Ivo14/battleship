@@ -23,6 +23,26 @@ const int CALM_WATERS_SIZE = 10;
 const int ROUGH_SEAS_SIZE = 12;
 const int STORM_OF_STEEL_SIZE = 15;
 const char *typeBoat[] = {"Destroyer (1 tile)", "Submarine (2 tiles)", "Cruiser (3 tiles)", "Carrier (4 tiles)"};
+const char GameOverChar[] = "\nGame over!You win!\n";
+const char HitChar[] = "Hit!";
+const char MissChar[] = "Missed!";
+const char SunkChar[] = "Sunk!";
+char gameMessage[30];
+
+void clearConsole()
+{
+    system("cls");
+}
+
+void copyStr(char str[], const char source[])
+{
+    int i;
+    for (i = 0; source[i] != '\0'; i++)
+    {
+        str[i] = source[i];
+    }
+    str[i] = '\0';
+}
 
 char fromNumberToChar(int num)
 {
@@ -157,13 +177,17 @@ void printInColor(char str)
     else if (str == HIT)
     {
         cout << "\033[31m" << HIT << "\033[0m  ";
-    }else{
-        cout<<str<<"  ";
+    }
+    else
+    {
+        cout << str << "  ";
     }
 }
 
 void printBoards(char firstBoard[MAX][MAX], char secondBoard[MAX][MAX], const size_t size, bool oneBoard)
 {
+    clearConsole();
+    cout << gameMessage << endl;
     for (int i = 0; i <= size; i++)
     {
         if (i < 9)
@@ -307,7 +331,7 @@ void computerPicksCoordinatesToHit(char firstBoard[MAX][MAX],
                                    char PlayerShowBoard[MAX][MAX],
                                    int playerBoatHitAmount[MAXBOATS],
                                    const size_t size, const int moves[MAXIMUM],
-                                   int& move, int boatSize[MAXBOATS],
+                                   int &move, int boatSize[MAXBOATS],
                                    int &aliveBoatsPlayer)
 {
     int X;
@@ -353,6 +377,7 @@ bool playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
                                  const size_t size,
                                  int &aliveBoatsComputer)
 {
+    bool wantsToExit = false;
     int X = -2, Y = -2;
     while (!(X == -1 && Y == -1) && ((X < 1 || X > size) || (Y < 1 || Y > size) || areAlreadyHit(firstShowBoard, X, Y)))
     {
@@ -370,35 +395,45 @@ bool playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
         if (firstBoard[X][Y] == WATER)
         {
             firstShowBoard[X][Y] = MISS;
-            cout << "\nMissed!\n";
+            copyStr(gameMessage, MissChar);
         }
         else
         {
             firstShowBoard[X][Y] = HIT;
             int hitPosition = fromCharToNumber(firstBoard[X][Y]);
-            cout << "\nHit!\n";
+
+            copyStr(gameMessage, HitChar);
             computerBoatHitAmount[hitPosition]++;
             if (computerBoatHitAmount[hitPosition] == boatSize[hitPosition])
             {
-                cout << "\nSunk!\n";
+
+                copyStr(gameMessage, SunkChar);
                 aliveBoatsComputer ^= (1 << (hitPosition)); // making the boat on the index -> 0 (sunk)
-                if (!(aliveBoatsComputer))
-                {
-                    cout << "\nGame over! You win!\n";
-                }
             }
-            printBoards(firstShowBoard, PlayerShowBoard, size, 0);
             if ((aliveBoatsComputer))
-                playerPicksCoordinatesToHit(firstShowBoard,
-                                            firstBoard,
-                                            PlayerShowBoard,
-                                            computerBoatHitAmount,
-                                            boatSize,
-                                            size,
-                                            aliveBoatsComputer);
+            {
+                printBoards(firstShowBoard, PlayerShowBoard, size, 0);
+                wantsToExit = playerPicksCoordinatesToHit(firstShowBoard,
+                                                          firstBoard,
+                                                          PlayerShowBoard,
+                                                          computerBoatHitAmount,
+                                                          boatSize,
+                                                          size,
+                                                          aliveBoatsComputer);
+            }
+            else
+            {
+                copyStr(gameMessage, GameOverChar);
+                cout << gameMessage;
+            }
         }
     }
-    return false;
+    if (wantsToExit)
+    {
+        return true;
+    }
+    else
+        return false;
 }
 
 void fillInAllBoats(char board[MAX][MAX], char showBoard[MAX][MAX], size_t size, int automatic, int &boatID, bool computer)
@@ -466,7 +501,7 @@ void setUpGameDetailsFromFile(char firstShowBoard[MAX][MAX],
                               int playerBoatHitAmount[MAXBOATS],
                               int computerBoatHitAmount[MAXBOATS])
 {
-    ifstream saveGameFile("file.txt");
+    ifstream saveGameFile("GameData.txt");
     if (!saveGameFile)
     {
         cout << "Error when reading file" << endl;
@@ -519,7 +554,7 @@ void saveGame(char firstShowBoard[MAX][MAX],
               int playerBoatHitAmount[MAXBOATS],
               int computerBoatHitAmount[MAXBOATS])
 {
-    ofstream saveGameFile("file.txt");
+    ofstream saveGameFile("GameData.txt");
     if (!saveGameFile)
     {
         cout << "Error when writing file" << endl;
@@ -559,21 +594,21 @@ void game(char firstShowBoard[MAX][MAX],
           int computerBoatHitAmount[MAXBOATS],
           size_t size,
           int moves[MAXIMUM],
-          int& move,
+          int &move,
           int boatSize[MAXBOATS],
-          int& aliveBoatsPlayer,
-          int& aliveBoatsComputer)
+          int &aliveBoatsPlayer,
+          int &aliveBoatsComputer)
 {
     while (aliveBoatsComputer && aliveBoatsPlayer)
     {
         printBoards(firstShowBoard, secondShowBoard, size, 0);
         bool playerWantsToSave = playerPicksCoordinatesToHit(firstShowBoard,
-                                    firstBoard,
-                                    secondShowBoard,
-                                    computerBoatHitAmount,
-                                    boatSize,
-                                    size,
-                                    aliveBoatsComputer);
+                                                             firstBoard,
+                                                             secondShowBoard,
+                                                             computerBoatHitAmount,
+                                                             boatSize,
+                                                             size,
+                                                             aliveBoatsComputer);
         if (playerWantsToSave)
         {
             saveGame(secondShowBoard,
@@ -653,7 +688,9 @@ int main()
         size = type;
         size_randomized_array = size * size;
         for (int i = 0; i < size_randomized_array; i++)
+        {
             computerPicks[i] = i;
+        }
         shuffle(computerPicks, size_randomized_array);
         fillWithWater(ComputerShowBoard, PlayerBoard, ComputerBoard, PlayerShowBoard, size);
         int automatic = -1;
