@@ -22,6 +22,7 @@ const int CARRIERS_COUNT = 1;
 const int CALM_WATERS_SIZE = 10;
 const int ROUGH_SEAS_SIZE = 12;
 const int STORM_OF_STEEL_SIZE = 15;
+const int SAVE_GAME_CODE = -1;
 const char *typeBoat[] = {"Destroyer (1 tile)", "Submarine (2 tiles)", "Cruiser (3 tiles)", "Carrier (4 tiles)"};
 const char GameOverChar[] = "\nGame over!You win!\n";
 const char HitChar[] = "Hit!";
@@ -114,7 +115,7 @@ void fillWithWater(char board1[MAX][MAX], char board2[MAX][MAX], char board3[MAX
 bool areValidCoordinates(int startX, int startY, int endX, int endY, int boatSize, const size_t size)
 {
 
-    if (startX > 0 && startY > 0 && endY <= size && startY <= size && startY <= endY && startX <= endX)
+    if (startX > 0 && startY > 0 && endY <= size && startY <= endY && startX <= endX && endX<=size)
     { //^checking if coordinates are within a valid range
         if (((startX == endX) && (endY - startY) == boatSize - 1) ||
             ((startY == endY) && (endX - startX) == boatSize - 1)) // checking if the boat has correct length
@@ -379,13 +380,13 @@ bool playerPicksCoordinatesToHit(char firstShowBoard[MAX][MAX],
 {
     bool wantsToExit = false;
     int X = -2, Y = -2;
-    while (!(X == -1 && Y == -1) && ((X < 1 || X > size) || (Y < 1 || Y > size) || areAlreadyHit(firstShowBoard, X, Y)))
+    while (!(X == SAVE_GAME_CODE && Y == SAVE_GAME_CODE) && ((X < 1 || X > size) || (Y < 1 || Y > size) || areAlreadyHit(firstShowBoard, X, Y)))
     {
         cout << "\nPick coordinates to hit: ";
         X = cinInt();
         Y = cinInt();
     }
-    if (X == -1)
+    if (X == SAVE_GAME_CODE)
     {
         return true;
     }
@@ -505,6 +506,7 @@ void setUpGameDetailsFromFile(char firstShowBoard[MAX][MAX],
     if (!saveGameFile)
     {
         cout << "Error when reading file" << endl;
+        return;
     }
     saveGameFile >> size;
     loadBoard(saveGameFile, firstShowBoard, size);
@@ -558,6 +560,7 @@ void saveGame(char firstShowBoard[MAX][MAX],
     if (!saveGameFile)
     {
         cout << "Error when writing file" << endl;
+        return;
     }
     saveGameFile << size << endl;
 
